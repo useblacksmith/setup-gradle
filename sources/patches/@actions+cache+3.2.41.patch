@@ -26,10 +26,19 @@ index 4658366..b796e58 100644
 +    constructor(key: string, size?: number);
 +}
 diff --git a/node_modules/@actions/cache/lib/cache.js b/node_modules/@actions/cache/lib/cache.js
-index 9d636aa..a176bd7 100644
+index 2063329..f3052d5 100644
 --- a/node_modules/@actions/cache/lib/cache.js
 +++ b/node_modules/@actions/cache/lib/cache.js
-@@ -127,18 +127,21 @@ function restoreCache(paths, primaryKey, restoreKeys, options, enableCrossOsArch
+@@ -114,7 +114,7 @@ function restoreCache(paths, primaryKey, restoreKeys, options, enableCrossOsArch
+             }
+             if (options === null || options === void 0 ? void 0 : options.lookupOnly) {
+                 core.info('Lookup only - skipping download');
+-                return cacheEntry.cacheKey;
++	    	return new CacheEntry(cacheEntry.cacheKey, 0);;
+             }
+             archivePath = path.join(yield utils.createTempDirectory(), utils.getCacheFileName(compressionMethod));
+             core.debug(`Archive Path: ${archivePath}`);
+@@ -127,17 +127,7 @@ function restoreCache(paths, primaryKey, restoreKeys, options, enableCrossOsArch
              core.info(`Cache Size: ~${Math.round(archiveFileSize / (1024 * 1024))} MB (${archiveFileSize} B)`);
              yield (0, tar_1.extractTar)(archivePath, compressionMethod);
              core.info('Cache restored successfully');
@@ -44,32 +53,15 @@ index 9d636aa..a176bd7 100644
 -                // Supress all non-validation cache related errors because caching should be optional
 -                core.warning(`Failed to restore: ${error.message}`);
 -            }
-+
-+            // PATCHED - Return more inforamtion about restored entry
-+            return new CacheEntry(cacheEntry.cacheKey, archiveFileSize);;
++	    return new CacheEntry(cacheEntry.cacheKey, archiveFileSize);;
          }
-+        // PATCHED - propagate errors
-+        // catch (error) {
-+        //     const typedError = error;
-+        //     if (typedError.name === ValidationError.name) {
-+        //         throw error;
-+        //     }
-+        //     else {
-+        //         // Supress all non-validation cache related errors because caching should be optional
-+        //         core.warning(`Failed to restore: ${error.message}`);
-+        //     }
-+        // }
          finally {
              // Try to delete the archive to save space
-             try {
-@@ -206,19 +209,23 @@ function saveCache(paths, key, options, enableCrossOsArchive = false) {
+@@ -206,19 +196,7 @@ function saveCache(paths, key, options, enableCrossOsArchive = false) {
              }
              core.debug(`Saving Cache (ID: ${cacheId})`);
-             yield cacheHttpClient.saveCache(cacheId, archivePath, options);
-+
-+            // PATCHED - Return more inforamtion about saved entry
-+            return new CacheEntry(key, archiveFileSize);
-         }
+             yield cacheHttpClient.saveCache(cacheId, archivePath, (_g = (_f = reserveCacheResponse.result) === null || _f === void 0 ? void 0 : _f.uploadUrls) !== null && _g !== void 0 ? _g : [], (_j = (_h = reserveCacheResponse.result) === null || _h === void 0 ? void 0 : _h.uploadId) !== null && _j !== void 0 ? _j : '');
+-        }
 -        catch (error) {
 -            const typedError = error;
 -            if (typedError.name === ValidationError.name) {
@@ -77,28 +69,16 @@ index 9d636aa..a176bd7 100644
 -            }
 -            else if (typedError.name === ReserveCacheError.name) {
 -                core.info(`Failed to save: ${typedError.message}`);
+-                core.debug(JSON.stringify(error));
 -            }
 -            else {
 -                core.warning(`Failed to save: ${typedError.message}`);
 -            }
--        }
-+        // PATCHED - propagate errors
-+        // catch (error) {
-+        //     const typedError = error;
-+        //     if (typedError.name === ValidationError.name) {
-+        //         throw error;
-+        //     }
-+        //     else if (typedError.name === ReserveCacheError.name) {
-+        //         core.info(`Failed to save: ${typedError.message}`);
-+        //     }
-+        //     else {
-+        //         core.warning(`Failed to save: ${typedError.message}`);
-+        //     }
-+        // }
++	    return new CacheEntry(key, archiveFileSize);
+         }
          finally {
              // Try to delete the archive to save space
-             try {
-@@ -232,4 +239,11 @@ function saveCache(paths, key, options, enableCrossOsArchive = false) {
+@@ -233,4 +211,11 @@ function saveCache(paths, key, options, enableCrossOsArchive = false) {
      });
  }
  exports.saveCache = saveCache;
@@ -110,4 +90,3 @@ index 9d636aa..a176bd7 100644
 +}
 +exports.CacheEntry = CacheEntry;
  //# sourceMappingURL=cache.js.map
-\ No newline at end of file
