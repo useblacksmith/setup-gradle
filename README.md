@@ -20,7 +20,7 @@ jobs:
     - name: Checkout sources
       uses: actions/checkout@v4
     - name: Setup Gradle
-      uses: gradle/actions/setup-gradle@v3
+      uses: useblacksmith/setup-gradle/setup-gradle
     - name: Build with Gradle
       run: ./gradlew build
 ```
