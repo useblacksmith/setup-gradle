@@ -1,0 +1,26 @@
+name: Java CI with Gradle
+
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  build:
+
+    runs-on: blacksmith-staging
+    permissions:
+      contents: read
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up JDK 17
+      uses: actions/setup-java@v4
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+
+    - name: Setup Gradle
+      uses: useblacksmith/setup-gradle@v666
+
+    - name: Build with Gradle Wrapper
+      run: ./gradlew version
