@@ -20,7 +20,7 @@ jobs:
         distribution: 'temurin'
 
     - name: Setup Gradle
-      uses: useblacksmith/setup-gradle/setup-gradle@v666
+      uses: useblacksmith/setup-gradle/setup-gradle@v5
 
     - name: Build with Gradle Wrapper
       run: ./gradlew version
