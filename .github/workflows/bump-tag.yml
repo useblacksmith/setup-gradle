@@ -1,0 +1,34 @@
+name: Bump Tags on Main
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  bump-tags:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Update v4, v5, and v6 tags
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email github-actions[bot]@users.noreply.github.com
+          git tag -fa v4 -m "Update v4 tag to latest commit on main"
+          git tag -fa v5 -m "Update v5 tag to latest commit on main"
+          git tag -fa v6 -m "Update v6 tag to latest commit on main"
+          git push origin v4 v5 v6 --force
+
+      - name: Send Slack notification on success
+        uses: slackapi/slack-github-action@v1
+        with:
+          payload: |
+            {
+              "text": "Updated setup-gradle v4, v5, and v6 tags to the latest commit on main"
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.CACHE_SLACK_WEBHOOK_URL }}
