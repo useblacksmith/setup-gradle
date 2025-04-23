@@ -1,0 +1,138 @@
+diff --git a/node_modules/@actions/cache/lib/cache.d.ts b/node_modules/@actions/cache/lib/cache.d.ts
+index 4658366..b796e58 100644
+--- a/node_modules/@actions/cache/lib/cache.d.ts
++++ b/node_modules/@actions/cache/lib/cache.d.ts
+@@ -21,7 +21,7 @@ export declare function isFeatureAvailable(): boolean;
+  * @param enableCrossOsArchive an optional boolean enabled to restore on windows any cache created on any platform
+  * @returns string returns the key for the cache hit, otherwise returns undefined
+  */
+-export declare function restoreCache(paths: string[], primaryKey: string, restoreKeys?: string[], options?: DownloadOptions, enableCrossOsArchive?: boolean): Promise<string | undefined>;
++export declare function restoreCache(paths: string[], primaryKey: string, restoreKeys?: string[], options?: DownloadOptions, enableCrossOsArchive?: boolean): Promise<CacheEntry | undefined>;
+ /**
+  * Saves a list of files with the specified key
+  *
+@@ -31,4 +31,12 @@ export declare function restoreCache(paths: string[], primaryKey: string, restor
+  * @param options cache upload options
+  * @returns number returns cacheId if the cache was saved successfully and throws an error if save fails
+  */
+-export declare function saveCache(paths: string[], key: string, options?: UploadOptions, enableCrossOsArchive?: boolean): Promise<number>;
++export declare function saveCache(paths: string[], key: string, options?: UploadOptions, enableCrossOsArchive?: boolean): Promise<CacheEntry>;
++
++// PATCHED: Add `CacheEntry` as return type for save/restore functions
++// This allows us to track and report on cache entry sizes.
++export declare class CacheEntry {
++    key: string;
++    size?: number;
++    constructor(key: string, size?: number);
++}
+diff --git a/node_modules/@actions/cache/lib/cache.js b/node_modules/@actions/cache/lib/cache.js
+index 069355b..b2f870f 100644
+--- a/node_modules/@actions/cache/lib/cache.js
++++ b/node_modules/@actions/cache/lib/cache.js
+@@ -180,28 +180,30 @@ function restoreCache(paths, primaryKey, restoreKeys, options, enableCrossOsArch
+             const extractionTimeSeconds = (extractEndTime - extractStartTime) / 1000;
+             core.info(`Cache extraction completed in ${extractionTimeSeconds.toFixed(2)} seconds`);
+             core.info('Cache restored successfully');
+-            return cacheKey;
+-        }
+-        catch (error) {
+-            const typedError = error;
+-            if (typedError.name === ValidationError.name) {
+-                throw error;
+-            }
+-            else {
+-                // Suppress all non-validation cache related errors because caching should be optional
+-                if ((_a = typedError.message) === null || _a === void 0 ? void 0 : _a.includes(`Cache service responded with 404`)) {
+-                    core.info(`Did not get a cache hit; proceeding as an uncached run`);
+-                }
+-                else {
+-                    core.warning(`Failed to restore: ${typedError.message}`);
+-                    if (!((_b = typedError.message) === null || _b === void 0 ? void 0 : _b.includes('File exists')) &&
+-                        !((_c = typedError.message) === null || _c === void 0 ? void 0 : _c.includes('Operation not permitted')) &&
+-                        !((_d = typedError.message) === null || _d === void 0 ? void 0 : _d.includes('failed with exit code 2'))) {
+-                        yield reportFailure();
+-                    }
+-                }
+-            }
++            // PATCHED - Return more information about restored entry
++            return new CacheEntry(cacheKey, archiveFileSize);
+         }
++        // PATCHED - propagate errors
++        // catch (error) {
++        //     const typedError = error;
++        //     if (typedError.name === ValidationError.name) {
++        //         throw error;
++        //     }
++        //     else {
++        //         // Suppress all non-validation cache related errors because caching should be optional
++        //         if ((_a = typedError.message) === null || _a === void 0 ? void 0 : _a.includes(`Cache service responded with 404`)) {
++        //             core.info(`Did not get a cache hit; proceeding as an uncached run`);
++        //         }
++        //         else {
++        //             core.warning(`Failed to restore: ${typedError.message}`);
++        //             if (!((_b = typedError.message) === null || _b === void 0 ? void 0 : _b.includes('File exists')) &&
++        //                 !((_c = typedError.message) === null || _c === void 0 ? void 0 : _c.includes('Operation not permitted')) &&
++        //                 !((_d = typedError.message) === null || _d === void 0 ? void 0 : _d.includes('failed with exit code 2'))) {
++        //                 yield reportFailure();
++        //             }
++        //         }
++        //     }
++        // }
+         finally {
+             // Try to delete the archive to save space
+             try {
+@@ -290,20 +292,24 @@ function saveCache(paths, key, options, enableCrossOsArchive = false) {
+             }
+             core.debug(`Saving Cache (ID: ${cacheId})`);
+             yield cacheHttpClient.saveCache(cacheId, archivePath, (_g = (_f = reserveCacheResponse.result) === null || _f === void 0 ? void 0 : _f.uploadUrls) !== null && _g !== void 0 ? _g : [], (_j = (_h = reserveCacheResponse.result) === null || _h === void 0 ? void 0 : _h.uploadId) !== null && _j !== void 0 ? _j : '');
++
++            // PATCHED - Return more information about saved entry
++            return new CacheEntry(key, archiveFileSize);
+         }
+-        catch (error) {
+-            const typedError = error;
+-            if (typedError.name === ValidationError.name) {
+-                throw error;
+-            }
+-            else if (typedError.name === ReserveCacheError.name) {
+-                core.info(`Failed to save: ${typedError.message}`);
+-                core.debug(JSON.stringify(error));
+-            }
+-            else {
+-                core.warning(`Failed to save: ${typedError.message}`);
+-            }
+-        }
++        // PATCHED - propagate errors
++        // catch (error) {
++        //     const typedError = error;
++        //     if (typedError.name === ValidationError.name) {
++        //         throw error;
++        //     }
++        //     else if (typedError.name === ReserveCacheError.name) {
++        //         core.info(`Failed to save: ${typedError.message}`);
++        //         core.debug(JSON.stringify(error));
++        //     }
++        //     else {
++        //         core.warning(`Failed to save: ${typedError.message}`);
++        //     }
++        // }
+         finally {
+             // Try to delete the archive to save space
+             try {
+@@ -313,8 +319,14 @@ function saveCache(paths, key, options, enableCrossOsArchive = false) {
+                 core.debug(`Failed to delete archive: ${error}`);
+             }
+         }
+-        return cacheId;
+     });
+ }
+ exports.saveCache = saveCache;
++class CacheEntry {
++    constructor(key, size) {
++        this.key = key;
++        this.size = size;
++    }
++}
++exports.CacheEntry = CacheEntry;
+ //# sourceMappingURL=cache.js.map
+\ No newline at end of file

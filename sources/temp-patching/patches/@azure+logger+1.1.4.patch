@@ -1,0 +1,52 @@
+diff --git a/node_modules/@azure/logger/dist/commonjs/debug.js b/node_modules/@azure/logger/dist/commonjs/debug.js
+index d43a88d..729b93e 100644
+--- a/node_modules/@azure/logger/dist/commonjs/debug.js
++++ b/node_modules/@azure/logger/dist/commonjs/debug.js
+@@ -9,7 +9,7 @@ let enabledNamespaces = [];
+ let skippedNamespaces = [];
+ const debuggers = [];
+ if (debugEnvVariable) {
+-    enable(debugEnvVariable);
++    // enable(debugEnvVariable);
+ }
+ const debugObj = Object.assign((namespace) => {
+     return createDebugger(namespace);
+diff --git a/node_modules/@azure/logger/dist/commonjs/index.js b/node_modules/@azure/logger/dist/commonjs/index.js
+index d2d499e..70fb79a 100644
+--- a/node_modules/@azure/logger/dist/commonjs/index.js
++++ b/node_modules/@azure/logger/dist/commonjs/index.js
+@@ -27,7 +27,7 @@ if (logLevelFromEnv) {
+         setLogLevel(logLevelFromEnv);
+     }
+     else {
+-        console.error(`AZURE_LOG_LEVEL set to unknown log level '${logLevelFromEnv}'; logging is not enabled. Acceptable values: ${AZURE_LOG_LEVELS.join(", ")}.`);
++        console.error(`AZURE_LOG_LEVEL set to unknown log level; logging is not enabled. Acceptable values: ${AZURE_LOG_LEVELS.join(", ")}.`);
+     }
+ }
+ /**
+diff --git a/node_modules/@azure/logger/dist/esm/debug.js b/node_modules/@azure/logger/dist/esm/debug.js
+index cf49a67..52f26b3 100644
+--- a/node_modules/@azure/logger/dist/esm/debug.js
++++ b/node_modules/@azure/logger/dist/esm/debug.js
+@@ -7,7 +7,7 @@ let enabledNamespaces = [];
+ let skippedNamespaces = [];
+ const debuggers = [];
+ if (debugEnvVariable) {
+-    enable(debugEnvVariable);
++    // enable(debugEnvVariable);
+ }
+ const debugObj = Object.assign((namespace) => {
+     return createDebugger(namespace);
+diff --git a/node_modules/@azure/logger/dist/esm/index.js b/node_modules/@azure/logger/dist/esm/index.js
+index 6e9ca26..3f93526 100644
+--- a/node_modules/@azure/logger/dist/esm/index.js
++++ b/node_modules/@azure/logger/dist/esm/index.js
+@@ -20,7 +20,7 @@ if (logLevelFromEnv) {
+         setLogLevel(logLevelFromEnv);
+     }
+     else {
+-        console.error(`AZURE_LOG_LEVEL set to unknown log level '${logLevelFromEnv}'; logging is not enabled. Acceptable values: ${AZURE_LOG_LEVELS.join(", ")}.`);
++        console.error(`AZURE_LOG_LEVEL set to unknown log level; logging is not enabled. Acceptable values: ${AZURE_LOG_LEVELS.join(", ")}.`);
+     }
+ }
+ /**

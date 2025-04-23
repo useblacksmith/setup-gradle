@@ -1,0 +1,19 @@
+{
+  "name": "temp-patching",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@actions/cache": "npm:@useblacksmith/cache@^3.2.213"
+  },
+  "devDependencies": {
+    "@azure/logger": "^1.1.4",
+    "patch-package": "^8.0.0"
+  },
+  "description": ""
+}
