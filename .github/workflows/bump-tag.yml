@@ -1,9 +1,7 @@
 name: Bump Tags on Main
 
 on:
-  push:
-    branches:
-      - main
+  workflow_dispatch:
 
 jobs:
   bump-tags:
