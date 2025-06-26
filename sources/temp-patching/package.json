@@ -9,7 +9,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@actions/cache": "npm:@useblacksmith/cache@^3.2.213"
+    "@actions/cache": "3.3.0"
   },
   "devDependencies": {
     "@azure/logger": "^1.1.4",
